@@ -1198,6 +1198,16 @@ namespace Oculus
 		public int sampleCount;
 	}
 
+   [StructLayout(LayoutKind.Sequential)]
+   public struct IID
+   {
+      public UInt32 Data1;
+      public UInt16 Data2;
+      public UInt16 Data3;
+
+      [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+      public byte[] Data4;
+   }
 
 	#endregion
 }
