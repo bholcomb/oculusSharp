@@ -144,11 +144,6 @@ namespace Oculus
 	public enum TrackingCaps : UInt32
 	{
 		/// <summary>
-		/// No flags.
-		/// </summary>
-		None = 0x0000,
-
-		/// <summary>
 		/// Supports orientation tracking (IMU).
 		/// </summary>
 		Orientation = 0x0010,
@@ -249,11 +244,6 @@ namespace Oculus
 	/// <see cref="TrackerPose"/>
 	public enum TrackerFlags : UInt32
 	{
-		/// <summary>
-		/// No flags.
-		/// </summary>
-		None = 0,
-
 		/// <summary>
 		/// The sensor is present, else the sensor is absent or offline.
 		/// </summary>
@@ -369,11 +359,13 @@ namespace Oculus
 		R16G16B16A16_FLOAT = 10,
 		R11G11B10_FLOAT = 25,
 
+		// Depth formats
 		D16_UNORM = 11,
 		D24_UNORM_S8_UINT = 12,
 		D32_FLOAT = 13,
 		D32_FLOAT_S8X24_UINT =14,
 
+		// Added in 1.5 compressed formats can be used for static layers
 		BC1_UNORM = 15,
 		BC1_UNORM_SRGB = 16,
 		BC2_UNORM = 17,
@@ -631,47 +623,6 @@ namespace Oculus
 	}
 
 	/// <summary>
-	/// Enumerates modifications to the projection matrix based on the application's needs.
-	/// </summary>
-	/// <see cref="OVRBase.Matrix_Projection"/>
-	public enum ProjectionModifier
-	{
-		/// <summary>
-		/// Use for generating a default projection matrix that is:
-		/// * Right-handed.
-		/// * Near depth values stored in the depth buffer are smaller than far depth values.
-		/// * Both near and far are explicitly defined.
-		/// * With a clipping range that is (0 to w).
-		/// </summary>
-		None = 0x00,
-
-		/// <summary>
-		/// Enable if using left-handed transformations in your application.
-		/// </summary>
-		LeftHanded = 0x01,
-
-		/// <summary>
-		/// After the projection transform is applied, far values stored in the depth buffer will be less than closer depth values.
-		/// NOTE: Enable only if the application is using a floating-point depth buffer for proper precision.
-		/// </summary>
-		FarLessThanNear = 0x02,
-
-		/// <summary>
-		/// When this flag is used, the zfar value pushed into ovrMatrix_Projection() will be ignored
-		/// NOTE: Enable only if ovrProjection_FarLessThanNear is also enabled where the far clipping plane will be pushed to infinity.
-		/// </summary>
-		FarClipAtInfinity = 0x04,
-
-		/// <summary>
-		/// Enable if the application is rendering with OpenGL and expects a projection matrix with a clipping range of (-w to w).
-		/// Ignore this flag if your application already handles the conversion from D3D range (0 to w) to OpenGL.
-		/// </summary>
-		ClipRangeOpenGL = 0x08
-	}
-
-
-
-	/// <summary>
 	/// Describes layer types that can be passed to ovr_SubmitFrame.
 	/// Each layer type has an associated struct, such as ovrLayerEyeFov.
 	/// </summary>
@@ -711,11 +662,6 @@ namespace Oculus
 	[Flags]
 	public enum LayerFlags : UInt32
 	{
-		/// <summary>
-		/// No layer flags specified.
-		/// </summary>
-		None = 0x00,
-
 		/// <summary>
 		/// HighQuality enables 4x anisotropic sampling during the composition of the layer.
 		/// The benefits are mostly visible at the periphery for high-frequency &amp; high-contrast visuals.
@@ -861,5 +807,49 @@ namespace Oculus
 		Count
 	}
 
+	/// <summary>
+	/// Enumerates modifications to the projection matrix based on the application's needs.
+	/// </summary>
+	/// <see cref="OVRBase.Matrix_Projection"/>
+	public enum ProjectionModifier
+	{
+		/// <summary>
+		/// Use for generating a default projection matrix that is:
+		/// * Right-handed.
+		/// * Near depth values stored in the depth buffer are smaller than far depth values.
+		/// * Both near and far are explicitly defined.
+		/// * With a clipping range that is (0 to w).
+		/// </summary>
+		None = 0x00,
+
+		/// <summary>
+		/// Enable if using left-handed transformations in your application.
+		/// </summary>
+		LeftHanded = 0x01,
+
+		/// <summary>
+		/// After the projection transform is applied, far values stored in the depth buffer will be less than closer depth values.
+		/// NOTE: Enable only if the application is using a floating-point depth buffer for proper precision.
+		/// </summary>
+		FarLessThanNear = 0x02,
+
+		/// <summary>
+		/// When this flag is used, the zfar value pushed into ovrMatrix_Projection() will be ignored
+		/// NOTE: Enable only if ovrProjection_FarLessThanNear is also enabled where the far clipping plane will be pushed to infinity.
+		/// </summary>
+		FarClipAtInfinity = 0x04,
+
+		/// <summary>
+		/// Enable if the application is rendering with OpenGL and expects a projection matrix with a clipping range of (-w to w).
+		/// Ignore this flag if your application already handles the conversion from D3D range (0 to w) to OpenGL.
+		/// </summary>
+		ClipRangeOpenGL = 0x08
+	}
+
+	public enum HapticsGenMode
+	{
+		PointSample,
+		Count,
+	}
 	#endregion
 }

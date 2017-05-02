@@ -1,10 +1,11 @@
 using System;
 using System.Runtime.InteropServices;
 using ovrBool = System.Byte;
-using ovrTextureSwapChain = System.IntPtr;
 
 using OpenTK;
 using OpenTK.Graphics;
+
+using ovrTextureSwapChain = System.IntPtr;
 
 namespace Oculus
 {
@@ -54,7 +55,7 @@ namespace Oculus
 		/// If you change these values then you need to also make sure to change LibOVR/Projects/Windows/LibOVR.props in parallel.
 		/// </summary>
 		public const int OVR_MAJOR_VERSION = 1;
-		public const int OVR_MINOR_VERSION = 11;
+		public const int OVR_MINOR_VERSION = 13;
 		public const int OVR_PATCH_VERSION = 0;
 		public const int OVR_BUILD_NUMBER = 0;
 
@@ -86,10 +87,26 @@ namespace Oculus
 
 		/// Maximum number of frames of performance stats provided back to the caller of ovr_GetPerfStats
 		public const int MaxProvidedFrameStats = 5;
+
+		public const string OVR_HMD_CONNECTED_EVENT_NAME = "OculusHMDConnected";
 	}
 	#endregion
 
 	#region Structs
+	[StructLayout(LayoutKind.Sequential, Pack =4 )]
+	public struct Vector2i
+	{
+		public Vector2i(int x, int y)
+		{
+			this.x = x;
+			this.y = y;
+		}
+
+		public int x;
+		public int y;
+	}
+
+
 	/// <summary>
 	/// A 2D size with integer components.
 	/// </summary>
@@ -167,6 +184,8 @@ namespace Oculus
 		/// </summary>
 		public Vector3 LinearAcceleration;
 
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+		public byte[] pad0;
 
 
 		/// <summary>
@@ -215,33 +234,13 @@ namespace Oculus
 	public struct HmdDesc
 	{
 		/// <summary>
-		/// Copy constructor used to convert an HmdDesc64 to an HmdDesc.
-		/// </summary>
-		/// <param name="source">HmdDesc64 to copy from.</param>
-		public HmdDesc(HmdDesc64 source)
-		{
-			Type = source.Type;
-			ProductName = source.ProductName;
-			Manufacturer = source.Manufacturer;
-			VendorId = source.VendorId;
-			ProductId = source.ProductId;
-			SerialNumber = source.SerialNumber;
-			FirmwareMajor = source.FirmwareMajor;
-			FirmwareMinor = source.FirmwareMinor;
-			AvailableHmdCaps = source.AvailableHmdCaps;
-			DefaultHmdCaps = source.DefaultHmdCaps;
-			AvailableTrackingCaps = source.AvailableTrackingCaps;
-			DefaultTrackingCaps = source.DefaultTrackingCaps;
-			DefaultEyeFov = source.DefaultEyeFov;
-			MaxEyeFov = source.MaxEyeFov;
-			Resolution = source.Resolution;
-			DisplayRefreshRate = source.DisplayRefreshRate;
-		}
-
-		/// <summary>
 		/// The type of HMD.
 		/// </summary>
 		public HmdType Type;
+
+		//assuming 64 bit builds here
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+		public byte[] pad0;
 
 		/// <summary>
 		/// Product identification string (e.g. "Oculus Rift DK1").
@@ -322,113 +321,12 @@ namespace Oculus
 		/// Nominal refresh rate of the display in cycles per second at the time of HMD creation.
 		/// </summary>
 		public float DisplayRefreshRate;
+
+		//assuming 64 bit builds here
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+		public byte[] pad1;
 	}
 
-	/// <summary>
-	/// 64 bit version of the HmdDesc.
-	/// </summary>
-	/// <remarks>
-	/// This class is needed because the Oculus SDK defines padding fields on the 64 bit version of the Oculus SDK.
-	/// </remarks>
-	/// <see cref="HmdDesc"/>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct HmdDesc64
-	{
-		/// <summary>
-		/// The type of HMD.
-		/// </summary>
-		public HmdType Type;
-
-		/// <summary>
-		/// Internal struct paddding.
-		/// </summary>
-		private int Pad0;
-
-		/// <summary>
-		/// Product identification string (e.g. "Oculus Rift DK1").
-		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-		public byte[] ProductName;
-
-		/// <summary>
-		/// HMD manufacturer identification string.
-		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-		public byte[] Manufacturer;
-
-		/// <summary>
-		/// HID (USB) vendor identifier of the device.
-		/// </summary>
-		public short VendorId;
-
-		/// <summary>
-		/// HID (USB) product identifier of the device.
-		/// </summary>
-		public short ProductId;
-
-		/// <summary>
-		/// Sensor (and display) serial number.
-		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 24)]
-		public byte[] SerialNumber;
-
-		/// <summary>
-		/// Sensor firmware major version.
-		/// </summary>
-		public short FirmwareMajor;
-
-		/// <summary>
-		/// Sensor firmware minor version.
-		/// </summary>
-		public short FirmwareMinor;
-
-		/// <summary>
-		/// Capability bits described by HmdCaps which the HMD currently supports.
-		/// </summary>
-		public HmdCaps AvailableHmdCaps;
-
-		/// <summary>
-		/// Capability bits described by HmdCaps which are default for the current Hmd.
-		/// </summary>
-		public HmdCaps DefaultHmdCaps;
-
-		/// <summary>
-		/// Capability bits described by TrackingCaps which the system currently supports.
-		/// </summary>
-		public TrackingCaps AvailableTrackingCaps;
-
-		/// <summary>
-		/// Capability bits described by ovrTrackingCaps which are default for the current system.
-		/// </summary>
-		public TrackingCaps DefaultTrackingCaps;
-
-		/// <summary>
-		/// Defines the recommended FOVs for the HMD.
-		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public FovPort[] DefaultEyeFov;
-
-		/// <summary>
-		/// Defines the maximum FOVs for the HMD.
-		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public FovPort[] MaxEyeFov;
-
-		/// <summary>
-		/// Resolution of the full HMD screen (both eyes) in pixels.
-		/// </summary>
-		public Sizei Resolution;
-
-		/// <summary>
-		/// Nominal refresh rate of the display in cycles per second at the time of HMD creation.
-		/// </summary>
-		public float DisplayRefreshRate;
-
-		/// <summary>
-		/// Internal struct paddding.
-		/// </summary>
-		private int Pad1;
-	}
 
 	/// <summary>
 	/// Specifies the description of a single sensor.
@@ -479,6 +377,9 @@ namespace Oculus
 		/// This value includes position and yaw of the sensor, but not roll and pitch. It can be used as a reference point to render real-world objects in the correct location.
 		/// </summary>
 		public Posef LeveledPose;
+
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+		public byte[] pad0;
 	}
 
 	/// <summary>
@@ -717,6 +618,12 @@ namespace Oculus
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
+	public struct BoundaryLookAndFeel
+	{
+		public Color4 Color;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
 	public struct BoundaryTestResult
 	{
 		// True if the boundary system is being triggered. Note that due to fade in/out effects this may not exactly match visibility.
@@ -730,12 +637,6 @@ namespace Oculus
 
 		// Unit surface normal of the closest boundary surface.
 		Vector3 ClosestPointNormal;
-	}
-
-	[StructLayout(LayoutKind.Sequential)]
-	public struct BoundaryLookAndFeel
-	{
-		public Color4 Color;
 	}
 
 	/// <summary>
@@ -855,6 +756,9 @@ namespace Oculus
 		/// Relative number of milliseconds to wait for a connection to the server
 		/// before failing. Use 0 for the default timeout.
 		public UInt32 ConnectionTimeoutMS;
+
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+		public byte[] pad0;
 	}
 
 	/// <summary>
@@ -881,6 +785,9 @@ namespace Oculus
 		///   This implies that the Oculus Service is also installed and running.
 		/// </summary>
 		public ovrBool IsOculusHMDConnected;
+
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+		public byte[] pad0;
 	}
 
 
@@ -1124,6 +1031,19 @@ namespace Oculus
 		public Vector2 QuadSize;
 	}
 
+	[StructLayout(LayoutKind.Explicit)]
+	public struct LayerUnion
+	{
+		[FieldOffset(0)]
+		public LayerHeader header;
+
+		[FieldOffset(0)]
+		public LayerEyeFov eyeFov;
+
+		[FieldOffset(0)]
+		public LayerQuad quad;
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
 	public struct PerfStatsPerCompositorFrame
 	{
@@ -1270,5 +1190,14 @@ namespace Oculus
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 512)]
 		public byte[] ErrorString;
 	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct HapticsClip
+	{
+		public IntPtr samples;
+		public int sampleCount;
+	}
+
+
 	#endregion
 }
