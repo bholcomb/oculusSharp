@@ -36,3 +36,10 @@ project "libOVR"
 	targetdir "../bin"
 	links{"System", "OpenTK"}
  
+ project "TestOculus"
+   kind "ConsoleApp"
+   language "C#"
+   location "testOculus"
+   files{"../testOculus/*.cs"}
+   targetdir "../bin"
+   links {"System", "OpenTK", "OculusSharp"}

@@ -220,6 +220,7 @@ namespace Oculus
 	/// The values must be the same as in enum StatusBits
 	/// </summary>
 	/// <see cref="TrackingState"/>
+	[Flags]
 	public enum StatusBits : UInt32
 	{
 		/// <summary>
@@ -242,6 +243,7 @@ namespace Oculus
 	/// Specifies sensor flags.
 	/// </summary>
 	/// <see cref="TrackerPose"/>
+	[Flags]
 	public enum TrackerFlags : UInt32
 	{
 		/// <summary>
@@ -294,6 +296,7 @@ namespace Oculus
 	/// input resources since the Oculus runtime needs this to read them.
 	/// </summary>
 	/// <see cref="TextureSwapChainDesc"/>
+	[Flags]
 	public enum TextureBindFlags : UInt32
 	{
 		None,
@@ -382,6 +385,7 @@ namespace Oculus
 	/// Misc flags overriding particular behaviors of a texture swap chain
 	/// </summary>
 	/// <see cref="TextureSwapChainDesc"/>
+	[Flags]
 	public enum TextureMiscFlags : UInt32
 	{
 		None = 0,
@@ -413,6 +417,7 @@ namespace Oculus
 	/// The ovrButton_Up/Down/Left/Right map to both XBox D-Pad and directional buttons.
 	/// The ovrButton_Enter and ovrButton_Return map to Start and Back controller buttons, respectively.
 	/// </summary>
+	[Flags]
 	public enum Button : UInt32
 	{
 		A = 0x00000001,
@@ -470,6 +475,7 @@ namespace Oculus
 	/// These values map to capacitive touch values reported ovrInputState::Touch.
 	/// Some of these values are mapped to button bits for consistency.
 	/// </summary>
+	[Flags]
 	public enum Touch : UInt32
 	{
 		A = Button.A,
@@ -589,9 +595,11 @@ namespace Oculus
 		Count = 2,
 	}
 
-
+	[Flags]
 	public enum InitFlags : UInt32
 	{
+		None = 0x0,
+
 		/// When a debug library is requested, a slower debugging version of the library will
 		/// run which can be used to help solve problems in the library and debug application code.
 		Debug = 0x00000001,

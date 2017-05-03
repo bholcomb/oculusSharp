@@ -1,10 +1,10 @@
 using System;
 using System.Runtime.InteropServices;
-using ovrBool = System.Byte;
 
 using OpenTK;
 using OpenTK.Graphics;
 
+using ovrBool = System.Byte;
 using ovrTextureSwapChain = System.IntPtr;
 
 namespace Oculus
@@ -119,8 +119,8 @@ namespace Oculus
 			this.Height = height;
 		}
 
-		public int Width,
-					Height;
+		public int Width;
+		public int Height;
 	}
 
 	/// <summary>
@@ -184,8 +184,7 @@ namespace Oculus
 		/// </summary>
 		public Vector3 LinearAcceleration;
 
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-		public byte[] pad0;
+		public UInt32 pad0;
 
 
 		/// <summary>
@@ -231,7 +230,7 @@ namespace Oculus
 	/// This is a complete descriptor of the HMD.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
-	public struct HmdDesc
+	public unsafe struct HmdDesc
 	{
 		/// <summary>
 		/// The type of HMD.
@@ -239,20 +238,39 @@ namespace Oculus
 		public HmdType Type;
 
 		//assuming 64 bit builds here
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-		public byte[] pad0;
+		public UInt32 pad0;
 
 		/// <summary>
 		/// Product identification string (e.g. "Oculus Rift DK1").
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-		public byte[] ProductName;
+		//[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+		fixed byte _ProductName[64];
+		public string ProductName
+		{
+			get
+			{
+				fixed (byte* p = _ProductName)
+				{
+					return Marshal.PtrToStringAnsi((IntPtr)p);
+				}
+			}
+		}
 
 		/// <summary>
 		/// HMD manufacturer identification string.
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-		public byte[] Manufacturer;
+		//[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+		fixed byte _Manufacturer[64];
+		public string Manufacturer
+		{
+			get
+			{
+				fixed (byte* p = _Manufacturer)
+				{
+					return Marshal.PtrToStringAnsi((IntPtr)p);
+				}
+			}
+		}
 
 		/// <summary>
 		/// HID (USB) vendor identifier of the device.
@@ -267,8 +285,18 @@ namespace Oculus
 		/// <summary>
 		/// HMD serial number.
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 24)]
-		public byte[] SerialNumber;
+		//[MarshalAs(UnmanagedType.ByValArray, SizeConst = 24)]
+		fixed byte _SerialNumber[24];
+		public string SerialNumber
+		{
+			get
+			{
+				fixed (byte* p = _SerialNumber)
+				{
+					return Marshal.PtrToStringAnsi((IntPtr)p);
+				}
+			}
+		}
 
 		/// <summary>
 		/// HMD firmware major version.
@@ -303,14 +331,16 @@ namespace Oculus
 		/// <summary>
 		/// Defines the recommended FOVs for the HMD.
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public FovPort[] DefaultEyeFov;
+		//[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+		public FovPort LeftDefaultEyeFov;
+		public FovPort RightDefaultEyeFov;
 
 		/// <summary>
 		/// Defines the maximum FOVs for the HMD.
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public FovPort[] MaxEyeFov;
+		//[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+		public FovPort LeftMaxEyeFov;
+		public FovPort RightMaxEyeFov;
 
 		/// <summary>
 		/// Resolution of the full HMD screen (both eyes) in pixels.
@@ -323,8 +353,7 @@ namespace Oculus
 		public float DisplayRefreshRate;
 
 		//assuming 64 bit builds here
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-		public byte[] pad1;
+		public UInt32 pad1;
 	}
 
 
@@ -405,15 +434,15 @@ namespace Oculus
 		/// HandPoses[ovrHand_Left] refers to the left hand and HandPoses[ovrHand_Right] to the right hand.
 		/// These values can be combined with ovrInputState for complete hand controller information.
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public PoseStatef[] HandPoses;
+		public PoseStatef LeftHandPose;
+		public PoseStatef RightHandPose;
 
 		/// <summary>
 		/// HandPoses status flags described by StatusBits.
 		/// Only OrientationTracked and PositionTracked are reported.
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public StatusBits[] HandStatusFlags;
+		public StatusBits LeftHandStatusFlags;
+		public StatusBits RightHandStatusFlags;
 
 		/// <summary>
 		/// The pose of the origin captured during calibration.

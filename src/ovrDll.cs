@@ -120,13 +120,13 @@ namespace Oculus
 		OVR_PUBLIC_FUNCTION(ovrResult) ovr_IdentifyClient(const char* identity);
 		*/
 		[DllImport(OVR_DLL, EntryPoint = "ovr_Initialize", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_Initialize(InitParams param);
+		public static extern Result ovr_Initialize(ref InitParams param);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_Shutdown", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern void ovr_Shutdown();
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetLastErrorInfo", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern void ovr_GetLastErrorInfo(ErrorInfo errorInfo);
+		public static extern void ovr_GetLastErrorInfo(ref ErrorInfo errorInfo);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetVersionString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern string ovr_GetVersionString();
@@ -158,13 +158,13 @@ namespace Oculus
 		public static extern TrackerDesc ovr_GetTrackerDesc(ovrSession session, UInt32 trackerDescIndex);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_Create", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_Create(ovrSession session, GraphicsLuid luid);
+		public static extern Result ovr_Create(ref ovrSession session, ref GraphicsLuid luid);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_Destroy", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern void ovr_Destroy(ovrSession session);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetSessionStatus", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetSessionStatus(ovrSession session, SessionStatus sessionStatus);
+		public static extern Result ovr_GetSessionStatus(ovrSession session, ref SessionStatus sessionStatus);
 		#endregion
 
 		#region Tracking API
@@ -211,13 +211,17 @@ namespace Oculus
 		public static extern void ovr_ClearShouldRecenterFlag(ovrSession session);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetTrackingState", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern TrackingState ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker);
+		static extern TrackingState ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker);
+		public static TrackingState ovr_GetTrackingState(ovrSession session, double absTime, bool latencyMarker)
+		{
+			return ovr_GetTrackingState(session, absTime, latencyMarker == true ? (byte)1 : (byte)0);
+		}
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetTrackerPose", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern TrackerPose ovr_GetTrackerPose(ovrSession session, UInt32 trackerPoseIndex);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetInputState", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetInputState(ovrSession session, ControllerType controllerType, InputState inputState);
+		public static extern Result ovr_GetInputState(ovrSession session, ControllerType controllerType, ref InputState inputState);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetConnectedControllerTypes", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern UInt32 ovr_GetConnectedControllerTypes(ovrSession session);
@@ -229,34 +233,34 @@ namespace Oculus
 		public static extern Result ovr_SetControllerVibration(ovrSession session, ControllerType controllerType, float frequency, float amplitude);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_SubmitControllerVibration", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_SubmitControllerVibration(ovrSession session, ControllerType controllerType, HapticsBuffer buffer);
+		public static extern Result ovr_SubmitControllerVibration(ovrSession session, ControllerType controllerType, ref HapticsBuffer buffer);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetControllerVibrationState", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetControllerVibrationState(ovrSession session, ControllerType controllerType, HapticsPlaybackState outState);
+		public static extern Result ovr_GetControllerVibrationState(ovrSession session, ControllerType controllerType, ref HapticsPlaybackState outState);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_TestBoundary", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_TestBoundary(ovrSession session, TrackedDeviceType deviceBitmask, BoundaryType boundaryType, BoundaryTestResult outTestResult);
+		public static extern Result ovr_TestBoundary(ovrSession session, TrackedDeviceType deviceBitmask, BoundaryType boundaryType, ref BoundaryTestResult outTestResult);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_TestBoundaryPoint", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_TestBoundaryPoint(ovrSession session, Vector3 point, BoundaryType singleboundaryType, BoundaryTestResult outTestResult);
+		public static extern Result ovr_TestBoundaryPoint(ovrSession session, ref Vector3 point, BoundaryType singleboundaryType, ref BoundaryTestResult outTestResult);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_SetBoundaryLookAndFeel", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_SetBoundaryLookAndFeel(ovrSession session, BoundaryLookAndFeel lookAndFeel);
+		public static extern Result ovr_SetBoundaryLookAndFeel(ovrSession session, ref BoundaryLookAndFeel lookAndFeel);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_ResetBoundaryLookAndFeel", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern Result ovr_ResetBoundaryLookAndFeel(ovrSession session);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetBoundaryGeometry", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetBoundaryGeometry(ovrSession session, BoundaryType boundaryType, Vector3 outFloorPoints, int outFloorPointsCount);
+		public static extern Result ovr_GetBoundaryGeometry(ovrSession session, BoundaryType boundaryType, ref Vector3 outFloorPoints, ref int outFloorPointsCount);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetBoundaryDimensions", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetBoundaryDimensions(ovrSession session, BoundaryType boundaryType, Vector3 outDimensions);
+		public static extern Result ovr_GetBoundaryDimensions(ovrSession session, BoundaryType boundaryType, ref Vector3 outDimensions);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetBoundaryVisible", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetBoundaryVisible(ovrSession session, ovrBool outIsVisible);
+		public static extern Result ovr_GetBoundaryVisible(ovrSession session, ref ovrBool outIsVisible);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_RequestBoundaryVisible", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_RequestBoundaryVisible(ovrSession session, ovrBool isVisible);
+		public static extern Result ovr_RequestBoundaryVisible(ovrSession session, ref ovrBool isVisible);
 		#endregion
 
 		#region SDK Distortion Rendering
@@ -274,13 +278,13 @@ namespace Oculus
                                                   ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 		*/
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetTextureSwapChainLength", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int outLength);
+		public static extern Result ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, ref int outLength);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetTextureSwapChainCurrentIndex", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetTextureSwapChainCurrentIndex(ovrSession session, ovrTextureSwapChain chain, int outIndex);
+		public static extern Result ovr_GetTextureSwapChainCurrentIndex(ovrSession session, ovrTextureSwapChain chain, ref int outIndex);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetTextureSwapChainDesc", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetTextureSwapChainDesc(ovrSession session, ovrTextureSwapChain chain, TextureSwapChainDesc outDesc);
+		public static extern Result ovr_GetTextureSwapChainDesc(ovrSession session, ovrTextureSwapChain chain, ref TextureSwapChainDesc outDesc);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_CommitTextureSwapChain", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern Result ovr_CommitTextureSwapChain(ovrSession session, ovrTextureSwapChain chain);
@@ -298,7 +302,7 @@ namespace Oculus
 		public static extern EyeRenderDesc ovr_GetRenderDesc(ovrSession session, EyeType eye, FovPort fov);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_SubmitFrame", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_SubmitFrame(ovrSession session, Int64 frameIndex, ViewScaleDesc viewScaleDesc, LayerHeader layerPtrList, UInt32 layerCount);
+		public static extern Result ovr_SubmitFrame(ovrSession session, Int64 frameIndex, ref ViewScaleDesc viewScaleDesc, ref LayerHeader layerPtrList, UInt32 layerCount);
 		#endregion
 
 		#region Frame Timing
@@ -309,7 +313,7 @@ namespace Oculus
 		OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds();
 		*/
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetPerfStats", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_GetPerfStats(ovrSession session, PerfStats outStats);
+		public static extern Result ovr_GetPerfStats(ovrSession session, ref PerfStats outStats);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_ResetPerfStats", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern Result ovr_ResetPerfStats(ovrSession session);
@@ -357,7 +361,7 @@ namespace Oculus
       public static extern ovrBool ovr_SetFloat(ovrSession session, String propertyName, float value);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetFloatArray", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern UInt32 ovr_GetFloatArray(ovrSession session, String propertyName, float[] values, UInt32 valueSize);
+      public static extern UInt32 ovr_GetFloatArray(ovrSession session, String propertyName, ref float[] values, UInt32 valueSize);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_SetFloatArray", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern ovrBool ovr_SetFloatArray(ovrSession session, String propertyName, float[] values, UInt32 valueSize);
@@ -407,19 +411,19 @@ namespace Oculus
       public static extern void ovr_CalcEyePoses(Posef headPose, Vector3[] hmdToEyeOffset, Posef[] outEyePoses);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetEyePoses", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern ovrBool ovr_GetEyePoses(ovrSession session, Int64 frameIndex, ovrBool latencyMarker, Vector3[] hmdToEyeOffset, Posef[] outEyePosese, double outSensorSampleTime);
+      public static extern ovrBool ovr_GetEyePoses(ovrSession session, Int64 frameIndex, ovrBool latencyMarker, Vector3[] hmdToEyeOffset, Posef[] outEyePosese, ref double outSensorSampleTime);
 
       [DllImport(OVR_DLL, EntryPoint = "ovrPosef_FlipHandedness", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern void ovrPosef_FlipHandedness(Posef inPose, Posef outPose);
+      public static extern void ovrPosef_FlipHandedness(ref Posef inPose, ref Posef outPose);
 
       //[DllImport(OVR_DLL, EntryPoint = "ovr_ReadWavFromBuffer", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]////
-      //public static extern Result ovr_ReadWavFromBuffer(AudioCahnnelData outAudioChannel, IntPtr inputData, int dataSizeInByts, int stereoChannelToUse);
+      //public static extern Result ovr_ReadWavFromBuffer(ref AudioCahnnelData outAudioChannel, IntPtr inputData, int dataSizeInByts, int stereoChannelToUse);
 
       //[DllImport(OVR_DLL, EntryPoint = "ovr_GenHapticsFromAudioData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      //public static extern Result ovr_GenHapticsFromAudioData(HapticsClip outHapticsClip, AudioChannelData audioChannel, HapticsGenMode genMode);
+      //public static extern Result ovr_GenHapticsFromAudioData(ref HapticsClip outHapticsClip, ref AudioChannelData audioChannel, HapticsGenMode genMode);
 
       //[DllImport(OVR_DLL, EntryPoint = "ovr_ReleaseAudioChannelData", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      //public static extern void ovr_ReleaseAudioChannelData(AudioChannelData audioChannel);
+      //public static extern void ovr_ReleaseAudioChannelData(ref AudioChannelData audioChannel);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_ReleaseHapticsClip", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern void ovr_ReleaseHapticsClip(HapticsClip hapticsClip);
@@ -444,16 +448,16 @@ namespace Oculus
                                                             unsigned int* out_TexId);
 		*/
       [DllImport(OVR_DLL, EntryPoint = "ovr_CreateTextureSwapChainGL", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern Result ovr_CreateTextureSwapChainGL(ovrSession session, TextureSwapChainDesc desc, ovrTextureSwapChain outTextureSwapChain);
+      public static extern Result ovr_CreateTextureSwapChainGL(ovrSession session, ref TextureSwapChainDesc desc, ref ovrTextureSwapChain outTextureSwapChain);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetTextureSwapChainBufferGL", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern Result ovr_GetTextureSwapChainBufferGL(ovrSession session, ovrTextureSwapChain chain, int index, UInt32 outTexId);
+      public static extern Result ovr_GetTextureSwapChainBufferGL(ovrSession session, ovrTextureSwapChain chain, int index, ref UInt32 outTexId);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_CreateMirrorTextureGL", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern Result ovr_CreateMirrorTextureGL(ovrSession session, MirrorTextureDesc desc, ovrMirrorTexture outMirrorTexture);
+      public static extern Result ovr_CreateMirrorTextureGL(ovrSession session, ref MirrorTextureDesc desc, ref ovrMirrorTexture outMirrorTexture);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetMirrorTextureBufferGL", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern Result ovr_GetMirrorTextureBufferGL(ovrSession session, ovrMirrorTexture mirroTexture, UInt32 outTexId);
+      public static extern Result ovr_GetMirrorTextureBufferGL(ovrSession session, ovrMirrorTexture mirroTexture, ref UInt32 outTexId);
       #endregion
 
       #region DirectX API
@@ -481,13 +485,13 @@ namespace Oculus
 
       */
       [DllImport(OVR_DLL, EntryPoint = "ovr_CreateTextureSwapChainDX", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern Result ovr_CreateTextureSwapChainDX(ovrSession session, IntPtr d3dPtr, TextureSwapChainDesc desc, ovrTextureSwapChain outTextureSwapChain);
+      public static extern Result ovr_CreateTextureSwapChainDX(ovrSession session, IntPtr d3dPtr, ref TextureSwapChainDesc desc, ref ovrTextureSwapChain outTextureSwapChain);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetTextureSwapChainBufferDX", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern Result ovr_GetTextureSwapChainBufferDX(ovrSession session, ovrTextureSwapChain chain, int index, IID iid, IntPtr outBuffer);
        
       [DllImport(OVR_DLL, EntryPoint = "ovr_CreateMirrorTextureDX", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern Result ovr_CreateMirrorTextureDX(ovrSession session, IntPtr d3dPtr, MirrorTextureDesc desc, ovrMirrorTexture outMirrorTexture);
+      public static extern Result ovr_CreateMirrorTextureDX(ovrSession session, IntPtr d3dPtr, ref MirrorTextureDesc desc, ref ovrMirrorTexture outMirrorTexture);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetMirrorTextureBufferDX", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern Result ovr_GetMirrorTextureBufferDX(ovrSession session, ovrMirrorTexture mirroTexture, IID iid, IntPtr outBufer);
