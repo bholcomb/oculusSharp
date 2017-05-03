@@ -16,7 +16,7 @@ namespace Oculus
 	#endregion
 
 	#region constants
-	public static class Types
+	public static class Constants
 	{
 		#region Definitions found in OVR_CAPI_Keys_h
 		public const string OVR_KEY_USER = "User";              // string
@@ -146,10 +146,7 @@ namespace Oculus
 	[StructLayout(LayoutKind.Sequential, Pack = 4)]
 	public struct Posef
 	{
-		[MarshalAs(UnmanagedType.Struct)]
 		public Quaternion Orientation;
-
-		[MarshalAs(UnmanagedType.Struct)]
 		public Vector3 Position;
 	}
 
@@ -226,9 +223,7 @@ namespace Oculus
 		public byte[] Reserved;
 	}
 
-	/// <summary>
-	/// This is a complete descriptor of the HMD.
-	/// </summary>
+	//This struct assumes the 64 bit build 
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct HmdDesc
 	{
@@ -237,9 +232,10 @@ namespace Oculus
 		/// </summary>
 		public HmdType Type;
 
+#if (BUILD64)
 		//assuming 64 bit builds here
 		public UInt32 pad0;
-
+#endif
 		/// <summary>
 		/// Product identification string (e.g. "Oculus Rift DK1").
 		/// </summary>
@@ -352,8 +348,9 @@ namespace Oculus
 		/// </summary>
 		public float DisplayRefreshRate;
 
-		//assuming 64 bit builds here
+#if (BUILD64)
 		public UInt32 pad1;
+#endif
 	}
 
 
@@ -384,6 +381,7 @@ namespace Oculus
 		/// </summary>
 		public float FrustumFarZInMeters;
 	}
+
 	/// <summary>
 	/// Specifies the pose for a single sensor.
 	/// </summary>
@@ -533,8 +531,8 @@ namespace Oculus
 		/// 
 		/// The same value pair provided in EyeRenderDesc.
 		/// </summary>
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public Vector3[] HmdToEyeOffset;
+		public Vector3 LeftHmdToEyeOffset;
+		public Vector3 RightHmdToEyeOffset;
 
 		/// <summary>
 		/// Ratio of viewer units to meter units.
@@ -708,7 +706,7 @@ namespace Oculus
 		/// </summary>
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
 		public Vector2[] Thumbstick;
-
+		
 		/// <summary>
 		/// The type of the controller this state is for.
 		/// </summary>
@@ -735,7 +733,7 @@ namespace Oculus
 		/// Added in 1.7
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
 		public Vector2[] ThumbstickNoDeadzone;
-
+		
 		/// Left and right finger trigger values (ovrHand_Left and ovrHand_Right), in the range 0.0 to 1.0f.
 		/// No deadzone or filter
 		/// This has been formally named "Grip Button". We retain the name HandTrigger for backwards code compatibility.
@@ -756,7 +754,7 @@ namespace Oculus
 		/// No deadzone or filter
 		/// Added in 1.11
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-		public Vector2[] ThumbstickRaw;
+		public Vector2[] LeftThumbstickRaw;		
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -786,8 +784,7 @@ namespace Oculus
 		/// before failing. Use 0 for the default timeout.
 		public UInt32 ConnectionTimeoutMS;
 
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-		public byte[] pad0;
+		public UInt32 pad0;
 	}
 
 	/// <summary>
@@ -1011,7 +1008,7 @@ namespace Oculus
 		/// The main purpose for this is to accurately track app tracking latency.
 		/// </summary>
 		public double SensorSampleTime;
-	};
+	}
 
 	/// <summary>
 	/// Describes a layer of Quad type, which is a single quad in world or viewer space.
@@ -1213,11 +1210,12 @@ namespace Oculus
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public struct ErrorInfo
+	public unsafe struct ErrorInfo
 	{
 		public Result result;
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 512)]
-		public byte[] ErrorString;
+		fixed byte _ErrorString[512];
+
+		public String ErrorString { get { fixed (byte* p = _ErrorString) { return Marshal.PtrToStringAnsi((IntPtr)p); } } }
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -1238,5 +1236,5 @@ namespace Oculus
       public byte[] Data4;
    }
 
-	#endregion
+#endregion
 }

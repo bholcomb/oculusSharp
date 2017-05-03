@@ -13,10 +13,12 @@ solution "OculusSharp"
     optimize "Speed"
 	
   configuration {"x32"}
+   defines{"BUILD32"}
    targetdir "../bin/x32"
    debugdir "../bin/x32"
 
   configuration {"x64"}
+   defines{"BUILD64"}
    targetdir "../bin/x64"
    debugdir "../bin/x64"
    
@@ -35,6 +37,7 @@ project "libOVR"
 	files{"../src/*.cs"}
 	targetdir "../bin"
 	links{"System", "OpenTK"}
+   clr "Unsafe"
  
  project "TestOculus"
    kind "ConsoleApp"

@@ -129,7 +129,12 @@ namespace Oculus
 		public static extern void ovr_GetLastErrorInfo(ref ErrorInfo errorInfo);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetVersionString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern string ovr_GetVersionString();
+		static extern IntPtr _ovr_GetVersionString();
+		public static string ovr_GetVersionString()
+		{
+			IntPtr ret = _ovr_GetVersionString();
+			return Marshal.PtrToStringAnsi(ret);
+		}
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_TraceMessage", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern int ovr_TraceMessage(int level, string message);
