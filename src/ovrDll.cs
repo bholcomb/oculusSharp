@@ -307,7 +307,7 @@ namespace Oculus
 		public static extern EyeRenderDesc ovr_GetRenderDesc(ovrSession session, EyeType eye, FovPort fov);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_SubmitFrame", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_SubmitFrame(ovrSession session, Int64 frameIndex, ref ViewScaleDesc viewScaleDesc, ref LayerHeader layerPtrList, UInt32 layerCount);
+		public static extern Result ovr_SubmitFrame(ovrSession session, Int64 frameIndex, ref ViewScaleDesc viewScaleDesc, ref LayerHeader[] layerPtrList, UInt32 layerCount);
 		#endregion
 
 		#region Frame Timing
@@ -413,7 +413,7 @@ namespace Oculus
       public static extern Matrix4 ovrMatrix4f_OrthoSubProjection(Matrix4 projection, Vector2 orthoSale, float orthoDistance, float hmdToEyeOffsetx);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_CalcEyePoses", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern void ovr_CalcEyePoses(Posef headPose, Vector3[] hmdToEyeOffset, Posef[] outEyePoses);
+      public static extern void ovr_CalcEyePoses(Posef headPose, Vector3[] hmdToEyeOffset, [Out]Posef[] outEyePoses);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetEyePoses", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern ovrBool ovr_GetEyePoses(ovrSession session, Int64 frameIndex, ovrBool latencyMarker, Vector3[] hmdToEyeOffset, Posef[] outEyePosese, ref double outSensorSampleTime);
