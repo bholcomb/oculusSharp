@@ -307,7 +307,7 @@ namespace Oculus
 		public static extern EyeRenderDesc ovr_GetRenderDesc(ovrSession session, EyeType eye, FovPort fov);
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_SubmitFrame", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-		public static extern Result ovr_SubmitFrame(ovrSession session, Int64 frameIndex, ref ViewScaleDesc viewScaleDesc, ref LayerHeader[] layerPtrList, UInt32 layerCount);
+		public static extern Result ovr_SubmitFrame(ovrSession session, Int64 frameIndex, ref ViewScaleDesc viewScaleDesc, IntPtr layerPtrList, UInt32 layerCount);
 		#endregion
 
 		#region Frame Timing
@@ -404,9 +404,17 @@ namespace Oculus
       public static extern Result ovr_Detect(int timeoutMilliseconds);
 
       [DllImport(OVR_DLL, EntryPoint = "ovrMatrix4f_Projection", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern Matrix4 ovrMatrix4f_Projection(FovPort vof, float znear, float zfar, ProjectionModifier projectionModFlags);
+      static extern Matrix4 _ovrMatrix4f_Projection(FovPort vof, float znear, float zfar, ProjectionModifier projectionModFlags);
+		public static Matrix4 ovrMatrix4f_Projection(FovPort vof, float znear, float zfar, ProjectionModifier projectionModFlags)
+		{
+			Matrix4 ret = _ovrMatrix4f_Projection(vof, znear, zfar, projectionModFlags);
+			//the matrix layout of ovr is row major, but openGL wants column major
+			ret.Transpose();
 
-      [DllImport(OVR_DLL, EntryPoint = "ovrTimewarpProjectionDesc_FromProjection", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+			return ret;
+		}
+
+		[DllImport(OVR_DLL, EntryPoint = "ovrTimewarpProjectionDesc_FromProjection", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern TimewarpProjectionDesc ovrTimewarpProjectionDesc_FromProjection(Matrix4 projection, ProjectionModifier projectionModFlags);
 
       [DllImport(OVR_DLL, EntryPoint = "ovrMatrix4f_OrthoSubProjection", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]

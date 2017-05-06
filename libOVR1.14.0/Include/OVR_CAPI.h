@@ -485,7 +485,11 @@ typedef struct OVR_ALIGNAS(OVR_PTR_SIZE) ovrHmdDesc_
 /// Used as an opaque pointer to an OVR session.
 typedef struct ovrHmdStruct* ovrSession;
 
-
+#ifdef OVR_OS_WIN32
+    typedef uint32_t ovrProcessId;
+#else
+    typedef pid_t ovrProcessId;
+#endif
 
 /// Bit flags describing the current status of sensor tracking.
 ///  The values must be the same as in enum StatusBits
@@ -2179,7 +2183,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 ///
 /// Contains the performance stats for a given SDK compositor frame
 ///
-/// All of the int fields can be reset via the ovr_ResetPerfStats call.
+/// All of the 'int' typed fields can be reset via the ovr_ResetPerfStats call.
 ///
 typedef struct OVR_ALIGNAS(4) ovrPerfStatsPerCompositorFrame_
 {
@@ -2229,7 +2233,7 @@ typedef struct OVR_ALIGNAS(4) ovrPerfStatsPerCompositorFrame_
     int     CompositorFrameIndex;
     
     /// Increments each time the SDK compositor fails to complete in time
-    /// This is not tied to the app's performance, but failure to complete can be tied to other factors
+    /// This is not tied to the app's performance, but failure to complete can be related to other factors
     /// such as OS capabilities, overall available hardware cycles to execute the compositor in time
     /// and other factors outside of the app's control.
     int     CompositorDroppedFrameCount;
@@ -2260,11 +2264,11 @@ typedef struct OVR_ALIGNAS(4) ovrPerfStatsPerCompositorFrame_
     /// Async Spacewarp stats (ASW)
     ///
 
-    /// Will be true is ASW is active for the given frame such that the application is being forced into
+    /// Will be true if ASW is active for the given frame such that the application is being forced into
     /// half the frame-rate while the compositor continues to run at full frame-rate
     ovrBool AswIsActive;
 
-    /// Accumulates each time ASW it activated where the app was forced in and out of half-rate rendering
+    /// Increments each time ASW it activated where the app was forced in and out of half-rate rendering
     int AswActivatedToggleCount;
 
     /// Accumulates the number of frames presented by the compositor which had extrapolated ASW frames presented
@@ -2282,8 +2286,6 @@ enum { ovrMaxProvidedFrameStats = 5 };
 
 ///
 /// This is a complete descriptor of the performance stats provided by the SDK
-///
-///
 /// 
 /// \see ovr_GetPerfStats, ovrPerfStatsPerCompositorFrame
 typedef struct OVR_ALIGNAS(4) ovrPerfStats_
@@ -2302,9 +2304,8 @@ typedef struct OVR_ALIGNAS(4) ovrPerfStats_
     ovrPerfStatsPerCompositorFrame  FrameStats[ovrMaxProvidedFrameStats];
     int                             FrameStatsCount;
 
-    /// If the app calls ovr_SubmitFrame at a rate less than 18 fps, then when calling
-    /// ovr_GetPerfStats, expect AnyFrameStatsDropped to become ovrTrue while FrameStatsCount
-    /// is equal to ovrMaxProvidedFrameStats.
+    /// If the app calls ovr_GetPerfStats at less than 18 fps for CV1, then AnyFrameStatsDropped
+    /// will be ovrTrue and FrameStatsCount will be equal to ovrMaxProvidedFrameStats.
     ovrBool                         AnyFrameStatsDropped;
 
     /// AdaptiveGpuPerformanceScale is an edge-filtered value that a caller can use to adjust
@@ -2324,17 +2325,37 @@ typedef struct OVR_ALIGNAS(4) ovrPerfStats_
     /// Will be true if Async Spacewarp (ASW) is available for this system which is dependent on
     /// several factors such as choice of GPU, OS and debug overrides
     ovrBool                         AswIsAvailable;
+
+    /// Contains the Process ID of the VR application the stats are being polled for
+    /// If an app continues to grab perf stats even when it is not visible, then expect this
+    /// value to point to the other VR app that has grabbed focus (i.e. became visible)
+	ovrProcessId                    VisibleProcessId;
 } ovrPerfStats;
 
 #if !defined(OVR_EXPORTING_CAPI)
 
 /// Retrieves performance stats for the VR app as well as the SDK compositor.
 ///
-/// If the app calling this function is not the one in focus (i.e. not visible in the HMD), then
-/// outStats will be zero'd out.
-/// New stats are populated after each successive call to ovr_SubmitFrame. So the app should call
-/// this function on the same thread it calls ovr_SubmitFrame, preferably immediately
-/// afterwards.
+/// This function will return stats for the VR app that is currently visible in the HMD
+/// regardless of what VR app is actually calling this function.
+///
+/// If the VR app is trying to make sure the stats returned belong to the same application,
+/// the caller can compare the VisibleProcessId with their own process ID. Normally this will
+/// be the case if the caller is only calling ovr_GetPerfStats when ovr_GetSessionStatus has
+/// IsVisible flag set to be true.
+///
+/// If the VR app calling ovr_GetPerfStats is actually the one visible in the HMD,
+/// then new perf stats will only be populated after a new call to ovr_SubmitFrame.
+/// That means subsequent calls to ovr_GetPerfStats after the first one without calling
+/// ovr_SubmitFrame will receive a FrameStatsCount of zero.
+/// 
+/// If the VR app is not visible, or was initially marked as ovrInit_Invisible, then each call
+/// to ovr_GetPerfStats will immediately fetch new perf stats from the compositor without
+/// a need for the ovr_SubmitFrame call.
+///
+/// Even though invisible VR apps do not require ovr_SubmitFrame to be called to gather new
+/// perf stats, since stats are generated at the native refresh rate of the HMD (i.e. 90 Hz for CV1),
+/// calling it at a higher rate than that would be unnecessary.
 ///
 /// \param[in] session Specifies an ovrSession previously returned by ovr_Create.
 /// \param[out] outStats Contains the performance stats for the application and SDK compositor
@@ -2594,72 +2615,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 #endif
 
 /// @cond DoxygenIgnore
-//-----------------------------------------------------------------------------
-// ***** Compiler packing validation
-//
-// These checks ensure that the compiler settings being used will be compatible
-// with with pre-built dynamic library provided with the runtime.
-
-OVR_STATIC_ASSERT(sizeof(ovrBool) == 1,         "ovrBool size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrVector2i) == 4 * 2, "ovrVector2i size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrSizei) == 4 * 2,    "ovrSizei size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrRecti) == sizeof(ovrVector2i) + sizeof(ovrSizei), "ovrRecti size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrQuatf) == 4 * 4,    "ovrQuatf size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrVector2f) == 4 * 2, "ovrVector2f size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrVector3f) == 4 * 3, "ovrVector3f size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrMatrix4f) == 4 * 16, "ovrMatrix4f size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrPosef) == (7 * 4),       "ovrPosef size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrPoseStatef) == (22 * 4), "ovrPoseStatef size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrFovPort) == (4 * 4),     "ovrFovPort size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrHmdCaps) == 4,      "ovrHmdCaps size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrTrackingCaps) == 4, "ovrTrackingCaps size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrEyeType) == 4,      "ovrEyeType size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrHmdType) == 4,      "ovrHmdType size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrTrackerDesc) == 4 + 4 + 4 + 4, "ovrTrackerDesc size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrTrackerPose) == 4 + 4 + sizeof(ovrPosef) + sizeof(ovrPosef), "ovrTrackerPose size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrTrackingState) == sizeof(ovrPoseStatef) + 4 + 4 + (sizeof(ovrPoseStatef) * 2) + (sizeof(unsigned int) * 2) + sizeof(ovrPosef) + 4, "ovrTrackingState size mismatch");
-
-
-//OVR_STATIC_ASSERT(sizeof(ovrTextureHeader) == sizeof(ovrRenderAPIType) + sizeof(ovrSizei),
-//                      "ovrTextureHeader size mismatch");
-//OVR_STATIC_ASSERT(sizeof(ovrTexture) == sizeof(ovrTextureHeader) OVR_ON64(+4) + sizeof(uintptr_t) * 8,
-//                      "ovrTexture size mismatch");
-//
-OVR_STATIC_ASSERT(sizeof(ovrStatusBits) == 4, "ovrStatusBits size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrSessionStatus) == 6, "ovrSessionStatus size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrEyeRenderDesc) == sizeof(ovrEyeType) + sizeof(ovrFovPort) + sizeof(ovrRecti) +
-                                                  sizeof(ovrVector2f) + sizeof(ovrVector3f),
-                      "ovrEyeRenderDesc size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrTimewarpProjectionDesc) == 4 * 3, "ovrTimewarpProjectionDesc size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrInitFlags) == 4, "ovrInitFlags size mismatch");
-OVR_STATIC_ASSERT(sizeof(ovrLogLevel) == 4, "ovrLogLevel size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrInitParams) == 4 + 4 + sizeof(ovrLogCallback) + sizeof(uintptr_t) + 4 + 4,
-                      "ovrInitParams size mismatch");
-
-OVR_STATIC_ASSERT(sizeof(ovrHmdDesc) ==
-    + sizeof(ovrHmdType)                // Type
-    OVR_ON64(+ 4)                       // pad0
-    + 64                                // ProductName
-    + 64                                // Manufacturer
-    + 2                                 // VendorId
-    + 2                                 // ProductId
-    + 24                                // SerialNumber
-    + 2                                 // FirmwareMajor
-    + 2                                 // FirmwareMinor
-    + 4 * 4                             // AvailableHmdCaps - DefaultTrackingCaps
-    + sizeof(ovrFovPort) * 2            // DefaultEyeFov
-    + sizeof(ovrFovPort) * 2            // MaxEyeFov
-    + sizeof(ovrSizei)                  // Resolution
-    + 4                                 // DisplayRefreshRate
-    OVR_ON64(+ 4)                       // pad1
-    , "ovrHmdDesc size mismatch");
 
 
 // -----------------------------------------------------------------------------------

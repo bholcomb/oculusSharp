@@ -799,11 +799,18 @@ static ModuleHandleType OVR_FindLibraryPath(int requestedProductVersion, int req
 
         if(sdkRoot[0])
         {
-            #if defined(OVR_BUILD_DEBUG)
-                const char* pConfigDirName = "Debug";
-            #else
-                const char* pConfigDirName = "Release";
+
+            #ifndef CONFIG_VARIANT
+                #define CONFIG_VARIANT
             #endif
+
+            #if defined(OVR_BUILD_DEBUG)
+                const char* pConfigDirName = "Debug" CONFIG_VARIANT;
+            #else
+                const char* pConfigDirName = "Release" CONFIG_VARIANT;
+            #endif
+
+            #undef CONFIG_VARIANT
 
             #if defined(_MSC_VER)
                 #if defined(_WIN64)
@@ -1168,7 +1175,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* inputParams)
     if (reportClientInfo)
     {
         unsigned int mscFullVer = 0;
-#if defined (_MSC_FULL_VER)
+#if defined(_MSC_FULL_VER)
         mscFullVer = _MSC_FULL_VER;
 #endif // _MSC_FULL_VER
 

@@ -55,7 +55,7 @@ namespace Oculus
 		/// If you change these values then you need to also make sure to change LibOVR/Projects/Windows/LibOVR.props in parallel.
 		/// </summary>
 		public const int OVR_MAJOR_VERSION = 1;
-		public const int OVR_MINOR_VERSION = 13;
+		public const int OVR_MINOR_VERSION = 14;
 		public const int OVR_PATCH_VERSION = 0;
 		public const int OVR_BUILD_NUMBER = 0;
 
@@ -865,8 +865,8 @@ namespace Oculus
 	/// </summary>
 	/// <see cref="LayerType"/>
 	/// <see cref="LayerFlags"/>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LayerHeader
+	[StructLayout(LayoutKind.Sequential, Pack = 4)]
+	public struct ovrLayerHeader
 	{
 		/// <summary>
 		/// Described by LayerType.
@@ -895,13 +895,13 @@ namespace Oculus
 	/// </summary>
 	/// <see cref="TextureSwapChain"/>
 	/// <see cref="OVRBase.SubmitFrame"/>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LayerEyeFov
+	[StructLayout(LayoutKind.Sequential, Pack = 4)]
+	public unsafe struct ovrLayerEyeFov
 	{
 		/// <summary>
 		/// Header.Type must be LayerType_EyeFov.
 		/// </summary>
-		public LayerHeader Header;
+		public ovrLayerHeader Header;
 
 		/// <summary>
 		/// TextureSwapChains for the left and right eye respectively.
@@ -960,13 +960,13 @@ namespace Oculus
 	/// </summary>
 	/// <see cref="TextureSwapChain"/>
 	/// <see cref="OVRBase.SubmitFrame"/>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LayerEyeMatrix
+	[StructLayout(LayoutKind.Sequential, Pack = 4)]
+	public struct ovrLayerEyeMatrix
 	{
 		/// <summary>
 		/// Header.Type must be ovrLayerType_EyeMatrix.
 		/// </summary>
-		public LayerHeader Header;
+		public ovrLayerHeader Header;
 
 		/// <summary>
 		/// TextureSwapChains for the left and right eye respectively.
@@ -1024,13 +1024,13 @@ namespace Oculus
 	/// </summary>
 	/// <see cref="TextureSwapChain"/>
 	/// <see cref="OVRBase.SubmitFrame"/>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LayerQuad
+	[StructLayout(LayoutKind.Sequential, Pack = 4)]
+	public struct ovrLayerQuad
 	{
 		/// <summary>
 		/// Header.Type must be ovrLayerType_Quad.
 		/// </summary>
-		public LayerHeader Header;
+		public ovrLayerHeader Header;
 
 		/// <summary>
 		/// Contains a single image, never with any stereo view.
@@ -1057,17 +1057,20 @@ namespace Oculus
 		public Vector2 QuadSize;
 	}
 
-	[StructLayout(LayoutKind.Explicit)]
-	public struct LayerUnion
+	[StructLayout(LayoutKind.Explicit, Pack = 4)]
+	public struct ovrLayerUnion
 	{
 		[FieldOffset(0)]
-		public LayerHeader header;
+		public ovrLayerHeader header;
 
 		[FieldOffset(0)]
-		public LayerEyeFov eyeFov;
+		public ovrLayerEyeFov eyeFov;
 
 		[FieldOffset(0)]
-		public LayerQuad quad;
+		public ovrLayerEyeMatrix eyeMatrix;
+
+		[FieldOffset(0)]
+		public ovrLayerQuad quad;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -1207,6 +1210,11 @@ namespace Oculus
 		/// Will be true if Async Spacewarp (ASW) is available for this system which is dependent on
 		/// several factors such as choice of GPU, OS and debug overrides
 		public ovrBool AswIsAvailable;
+
+		/// Contains the Process ID of the VR application the stats are being polled for
+		/// If an app continues to grab perf stats even when it is not visible, then expect this
+		/// value to point to the other VR app that has grabbed focus (i.e. became visible)
+		public UInt32 VisibleProcessId;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]

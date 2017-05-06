@@ -11,6 +11,9 @@ solution "OculusSharp"
  
   configuration { "Release" }
     optimize "Speed"
+    
+  configuration { "**.png" }
+      buildaction "Embed"
 	
   configuration {"x32"}
    defines{"BUILD32"}
@@ -25,10 +28,10 @@ solution "OculusSharp"
 project "libOVR"
 	kind "SharedLib"
 	language "C++"
-	location "libOvr1.13.0"
+	location "libOvr1.14.0"
 	defines{"OVR_DLL_BUILD"}
-	includedirs{"../libOVR1.13.0/Include"}
-	files{"../libOvr1.13.0/Include/**.h", "../libOvr1.13.0/Src/**.c", "../libOvr1.13.0/Src/**.cpp", "../libOvr1.13.0/Src/**.h"}
+	includedirs{"../libOVR1.14.0/Include"}
+	files{"../libOvr1.14.0/Include/**.h", "../libOvr1.14.0/Src/**.c", "../libOvr1.14.0/Src/**.cpp", "../libOvr1.14.0/Src/**.h"}
  
  project "OculusSharp"
 	kind "SharedLib"
@@ -43,6 +46,6 @@ project "libOVR"
    kind "ConsoleApp"
    language "C#"
    location "testOculus"
-   files{"../testOculus/*.cs"}
+   files{"../testOculus/*.cs", "../testOculus/*.png"}
    targetdir "../bin"
-   links {"System", "OpenTK", "OculusSharp"}
+   links {"System", "System.Drawing", "OpenTK", "OculusSharp"}
