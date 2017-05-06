@@ -58,6 +58,8 @@ namespace TestOculus
 			int myCubeTexture;
 			UInt32 myMirrorTexture;
 
+			float zoomFactor = 1.0f;
+
 			Result result;
 			ErrorInfo error;
 			ovrSession session = IntPtr.Zero;
@@ -92,6 +94,20 @@ namespace TestOculus
 				if(e.Key == Key.Space)
 				{
 					OvrDLL.ovr_RecenterTrackingOrigin(session);
+				}
+
+				if(e.Key == Key.Up)
+				{
+					zoomFactor *= 2.0f;
+					if (zoomFactor > 128.0f)
+						zoomFactor = 128.0f;
+				}
+
+				if (e.Key == Key.Down)
+				{
+					zoomFactor /= 2.0f;
+					if (zoomFactor < 0.25f)
+						zoomFactor = 0.25f;
 				}
 			}
 
@@ -240,10 +256,23 @@ namespace TestOculus
 
 				Vector3 camPos = new Vector3(0, 2, 5);
 				Quaternion camOri = Quaternion.Identity;
-				
+
+
 #if RENDER_OCULUS
 				for (int i = 0; i < 2; i++)
 				{
+					//zoom field of view
+					var fov = new FovPort
+					{
+						DownTan = eyes[i].desc.Fov.DownTan / zoomFactor,
+						UpTan = eyes[i].desc.Fov.UpTan / zoomFactor,
+						LeftTan = eyes[i].desc.Fov.LeftTan / zoomFactor,
+						RightTan = eyes[i].desc.Fov.RightTan / zoomFactor
+					};
+
+
+					eyes[i].proj = OvrDLL.ovrMatrix4f_Projection(fov, 0.1f, 1000.0f, ProjectionModifier.ClipRangeOpenGL);
+
 					//bind eye fbo
 					bindFbo(eyes[i]);
 
@@ -295,7 +324,6 @@ namespace TestOculus
 				SwapBuffers();
 			}
 
-#region init and rendering
 			void initEyeTarget(EyeType eye)
 			{
 				EyeTarget e = new EyeTarget();
@@ -304,6 +332,7 @@ namespace TestOculus
 				e.depthTexture = GL.GenRenderbuffer();
 				e.desc = OvrDLL.ovr_GetRenderDesc(session, eye, eye == EyeType.Left ? hmdDesc.LeftDefaultEyeFov : hmdDesc.RightDefaultEyeFov);
 				e.renderTargetSize = OvrDLL.ovr_GetFovTextureSize(session, EyeType.Left, hmdDesc.LeftDefaultEyeFov, 1.0f);
+
 				e.proj = OvrDLL.ovrMatrix4f_Projection(e.desc.Fov, 0.1f, 1000.0f, ProjectionModifier.ClipRangeOpenGL);
 
 				//create the texture swap chain
@@ -371,6 +400,7 @@ namespace TestOculus
 				GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 			}
 
+#region OpenGL init and rendering
 			void initGLObjects()
 			{
 				//create the objects
