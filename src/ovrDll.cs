@@ -328,10 +328,31 @@ namespace Oculus
 
 		[DllImport(OVR_DLL, EntryPoint = "ovr_GetTimeInSeconds", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 		public static extern double ovr_GetTimeInSeconds();
-      #endregion
+		#endregion
 
-      #region Property Access
-      /* 
+		#region Mixed reality support
+		/*
+		 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetExternalCameras( ovrSession session, ovrExternalCamera* cameras, unsigned int* inoutCameraCount);
+		 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetExternalCameraProperties( ovrSession session, const char* name, const ovrCameraIntrinsics* const intrinsics, const ovrCameraExtrinsics* const extrinsics);
+		*/
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_GetExternalCameras", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		static extern Result ovr_GetExternalCameras(ovrSession session, IntPtr cameras, ref UInt32 inoutCameraCount);
+		public unsafe static Result ovr_GetExternalCameras(ovrSession session, ExternalCamera[] cameras, ref UInt32 inoutCameraCount)
+		{
+			fixed (ExternalCamera* ptr = cameras)
+			{
+				return ovr_GetExternalCameras(session, (IntPtr)ptr, ref inoutCameraCount);
+			}
+		}
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_SetExternalCameraProperties", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+		public static extern Result ovr_SetExternalCameraProperties(ovrSession session, String name, ref CameraIntrinsics intrinsics, ref CameraExtrinsics extrinsics);
+
+		#endregion
+
+		#region Property Access
+		/* 
 		OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal);
 		OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value);
 		OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName, int defaultVal);
@@ -347,7 +368,7 @@ namespace Oculus
 		OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName,
                                               const char* value);
 		*/
-      [DllImport(OVR_DLL, EntryPoint = "ovr_GetBool", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		[DllImport(OVR_DLL, EntryPoint = "ovr_GetBool", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern ovrBool ovr_GetBool(ovrSession session, String propertyName, ovrBool defaultValue);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_SetBool", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -366,15 +387,29 @@ namespace Oculus
       public static extern ovrBool ovr_SetFloat(ovrSession session, String propertyName, float value);
 
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetFloatArray", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern UInt32 ovr_GetFloatArray(ovrSession session, String propertyName, ref float[] values, UInt32 valueSize);
+      static extern UInt32 ovr_GetFloatArray(ovrSession session, String propertyName, IntPtr values, UInt32 valueSize);
+		public unsafe static UInt32 ovr_GetFloatArray(ovrSession session, String propertyName, float[] values, UInt32 valueSize)
+		{
+			fixed(float* ptr = values)
+			{
+				return ovr_GetFloatArray(session, propertyName, (IntPtr)ptr, valueSize);
+			}
+		}
 
-      [DllImport(OVR_DLL, EntryPoint = "ovr_SetFloatArray", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-      public static extern ovrBool ovr_SetFloatArray(ovrSession session, String propertyName, float[] values, UInt32 valueSize);
+		[DllImport(OVR_DLL, EntryPoint = "ovr_SetFloatArray", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+      static extern ovrBool ovr_SetFloatArray(ovrSession session, String propertyName, IntPtr values, UInt32 valueSize);
+		public unsafe static ovrBool ovr_SetFloatArray(ovrSession session, String propertyName, float[] values, UInt32 valueSize)
+		{
+			fixed(float* ptr = values)
+			{
+				return ovr_SetFloatArray(session, propertyName, (IntPtr)ptr, valueSize);
+			}
+		}
 
-      [DllImport(OVR_DLL, EntryPoint = "ovr_GetString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		[DllImport(OVR_DLL, EntryPoint = "ovr_GetString", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
       public static extern string ovr_GetString(ovrSession session, String propertyName, string defaultValue);
 
-      [DllImport(OVR_DLL, EntryPoint = "ovr_SetString", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+      [DllImport(OVR_DLL, EntryPoint = "ovr_SetString", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
       public static extern ovrBool ovr_SetString(ovrSession session, String propertyName, string defaultValue);
 
       #endregion
@@ -509,6 +544,55 @@ namespace Oculus
       [DllImport(OVR_DLL, EntryPoint = "ovr_GetMirrorTextureBufferDX", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
       public static extern Result ovr_GetMirrorTextureBufferDX(ovrSession session, ovrMirrorTexture mirroTexture, IID iid, IntPtr outBufer);
 
-      #endregion
-   }
+		#endregion
+
+		#region Vulkan API
+		/*
+		OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionPhysicalDeviceVk( ovrSession session,
+					 ovrGraphicsLuid luid,
+					 VkInstance instance,
+					 VkPhysicalDevice* out_physicalDevice);
+
+		OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetSynchonizationQueueVk(ovrSession session, VkQueue queue);
+
+		OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainVk( ovrSession session,
+			 VkDevice device,
+			 const ovrTextureSwapChainDesc* desc,
+			 ovrTextureSwapChain* out_TextureSwapChain);
+
+		OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferVk( ovrSession session,
+			 ovrTextureSwapChain chain,
+			 int index,
+			 VkImage* out_Image);
+
+		OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureWithOptionsVk( ovrSession session,
+			 VkDevice device,
+			 const ovrMirrorTextureDesc* desc,
+			 ovrMirrorTexture* out_MirrorTexture);
+
+		OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferVk( ovrSession session,
+			 ovrMirrorTexture mirrorTexture,
+			 VkImage* out_Image);
+		*/
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_GetSessionPhysicalDeviceVk", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		public static extern Result ovr_GetSessionPhysicalDeviceVk(ovrSession session, GraphicsLuid lluid, IntPtr instance, ref IntPtr out_physicalDevice);
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_SetSynchonizationQueueVk", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		public static extern Result ovr_SetSynchonizationQueueVk(ovrSession session, UInt64 queue);
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_CreateTextureSwapChainVk", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		public static extern Result ovr_CreateTextureSwapChainVk(ovrSession session, IntPtr device, ref TextureSwapChainDesc desc, out ovrTextureSwapChain out_TextureSwapChain);
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_GetTextureSwapChainBufferVk", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		public static extern Result ovr_GetTextureSwapchainbufferVk(ovrSession session, ovrTextureSwapChain chain, int index, out UInt64 out_Image);
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_CreateMirrorTextureWithOptionsVk", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		public static extern Result ovr_CreateMirrorTextureWithOptionsVk(ovrSession session, IntPtr device, ref MirrorTextureDesc desc, out ovrMirrorTexture out_MirrorTexture);
+
+		[DllImport(OVR_DLL, EntryPoint = "ovr_GetMirrorTextureBufferVk", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+		public static extern Result ovr_GetMirrorTextureBufferVk(ovrSession session, ovrMirrorTexture mirrorTexture, out UInt64 out_Image);
+
+		#endregion
+	}
 }

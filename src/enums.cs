@@ -596,6 +596,25 @@ namespace Oculus
 	}
 
 	[Flags]
+	public enum CameraStatusFlags : UInt32
+	{
+		/// Initial state of camera
+		None = 0x0,
+
+		/// Bit set when the camera is connected to the system
+		Connected = 0x1,
+
+		/// Bit set when the camera is undergoing calibration
+		Calibrating = 0x2,
+
+		/// Bit set when the camera has tried & failed calibration
+		CalibrationFailed = 0x4,
+
+		/// Bit set when the camera has tried & passed calibration
+		Calibrated = 0x8,
+	}
+
+   [Flags]
 	public enum InitFlags : UInt32
 	{
 		None = 0x0,

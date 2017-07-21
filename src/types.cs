@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Runtime.InteropServices;
 
 using OpenTK;
@@ -89,6 +90,8 @@ namespace Oculus
 		public const int MaxProvidedFrameStats = 5;
 
 		public const string OVR_HMD_CONNECTED_EVENT_NAME = "OculusHMDConnected";
+
+		public const int OVR_EXTERNAL_CAMERA_NAME_SIZE = 32;
 	}
 	#endregion
 
@@ -755,6 +758,89 @@ namespace Oculus
 		/// Added in 1.11
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
 		public Vector2[] LeftThumbstickRaw;		
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct CameraIntrinsics
+	{
+		/// Time in seconds from last change to the parameters
+		public double LastChangedTime;
+
+		/// Angles of all 4 sides of viewport
+		public FovPort FOVPort;
+
+		/// Near plane of the virtual camera used to match the external camera
+		public float VirtualNearPlaneDistanceMeters;
+
+		/// Far plane of the virtual camera used to match the external camera
+		public float VirtualFarPlaneDistanceMeters;
+
+		/// Height in pixels of image sensor
+		public Sizei ImageSensorPixelResolution;
+
+		/// The lens distortion matrix of camera
+		public Matrix4 LensDistortionMatrix;
+
+		/// How often, in seconds, the exposure is taken
+		public double ExposurePeriodSeconds;
+
+		/// length of the exposure time
+		public double ExposureDurationSeconds;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct CameraExtrinsics
+	{
+		/// Time in seconds from last change to the parameters.
+		/// For instance, if the pose changes, or a camera exposure happens, this struct will be updated.
+		public double LastChangedTimeSeconds;
+
+		/// Current Status of the camera, a mix of bits from ovrCameraStatusFlags
+		public CameraStatusFlags CameraStatusFlags;
+
+		/// Which Tracked device, if any, is the camera rigidly attached to
+		/// If set to ovrTrackedDevice_None, then the camera is not attached to a tracked object.
+		/// If the external camera moves while unattached (i.e. set to ovrTrackedDevice_None), its Pose
+		/// won't be updated
+		public TrackedDeviceType AttachedToDevice;
+
+		/// The relative Pose of the External Camera.
+		/// If AttachedToDevice is ovrTrackedDevice_None, then this is a absolute pose in tracking space
+		public Posef RelativePose;
+
+		/// The time, in seconds, when the last successful exposure was taken
+		public double LastExposureTimeSeconds;
+
+		/// Estimated exposure latency to get from the exposure time to the system
+		public double ExposureLatencySeconds;
+
+		/// Additional latency to get from the exposure time of the real camera to match the render time
+		/// of the virtual camera
+		public double AdditionalLatencySeconds;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public unsafe struct ExternalCamera
+	{
+		fixed byte _Name[Constants.OVR_EXTERNAL_CAMERA_NAME_SIZE];
+		public string Name
+		{
+			get
+			{
+				fixed (byte* p = _Name)
+				{
+					return Marshal.PtrToStringAnsi((IntPtr)p);
+				}
+			}
+			set
+			{
+				Byte[] strBytes = Encoding.ASCII.GetBytes(value);
+				fixed (byte* p = _Name)
+				{
+					Marshal.Copy(strBytes, 0, (IntPtr)p, strBytes.Length > Constants.OVR_EXTERNAL_CAMERA_NAME_SIZE ? Constants.OVR_EXTERNAL_CAMERA_NAME_SIZE : strBytes.Length);
+				}
+			}
+		}
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
