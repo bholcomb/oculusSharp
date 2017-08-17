@@ -1,5 +1,5 @@
 # oculusSharp #
-Lightweight C# bindings to the OculusSDK 1.14.0.  Based heavily on the original work of OculusWrap (https://oculuswrap.codeplex.com/). 
+Lightweight C# bindings to the OculusSDK 1.16.0.  Based heavily on the original work of OculusWrap (https://oculuswrap.codeplex.com/). 
 
 ## To build ##
 Open a command prompt in the build directory
